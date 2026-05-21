@@ -139,7 +139,7 @@ app.post('/api/send-email', async (req, res) => {
   }
 
   const SMTP_USER   = process.env.SMTP_USER;
-  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || SMTP_USER;
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@swisselitetransfers.com';
 
   if (!SMTP_USER || !process.env.SMTP_PASS) {
     console.error('[Mailer] SMTP_USER or SMTP_PASS env var is not set');
@@ -356,67 +356,127 @@ function buildEmail(d) {
 
 /* ── Admin notification email ─────────────────────────── */
 function buildAdminEmail(d) {
-  const isRound = d.tripType === 'round-trip';
-  const fields = [
-    ['Reference',    d.ref],
-    ['Customer',     d.name],
-    ['Email',        d.email],
-    ['Phone',        d.phone || '—'],
-    ['Trip Type',    isRound ? 'Round Trip' : 'One Way'],
-    ['Pickup',           d.pickup || '—'],
-    ['Drop-off',         d.dropoff || '—'],
-    ['Pickup Date',      fmt(d.date)],
-    ['Pickup Time',      fmtT(d.time)],
-    ...(isRound && d.returnDate ? [
-      ['Return Date',     fmt(d.returnDate)],
-      ['Return Time',     fmtT(d.returnTime)],
-      ['Return Pickup',   d.returnPickup  || d.dropoff  || '—'],
-      ['Return Drop-off', d.returnDropoff || d.pickup   || '—'],
-    ] : []),
-    ['Vehicle',      d.vehicle || '—'],
-    ...(d.estimatedDistance ? [['Est. Distance', `~${d.estimatedDistance} km`]] : []),
-    ...(d.estimatedFare     ? [['Estimated Fare', `CHF ${Number(d.estimatedFare).toLocaleString()}`]] : []),
-    ...(d.notes             ? [['Special Requests', d.notes]] : []),
-    ...(d.paymentMethod     ? [['Payment', d.paymentMethod === 'online' ? '✓ Paid Online' : 'Cash on Arrival']] : []),
-  ];
+  const isRound       = d.tripType === 'round-trip';
+  const tripLabel     = isRound ? 'Round Trip' : 'One Way';
+  const returnPickup  = d.returnPickup  || d.dropoff || '—';
+  const returnDropoff = d.returnDropoff || d.pickup  || '—';
+  const isPaid        = d.paymentMethod === 'online';
+  const paymentBadge  = isPaid
+    ? `<span style="background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.35);color:#4ade80;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px">✓ PAID ONLINE</span>`
+    : `<span style="background:rgba(200,164,93,0.10);border:1px solid rgba(200,164,93,0.30);color:#C8A45D;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px">CASH ON ARRIVAL</span>`;
 
-  const rows = fields.map(([label, val]) => `
-    <tr>
-      <td style="padding:9px 16px;border-bottom:1px solid #1a1a1a;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#5a5750;white-space:nowrap;vertical-align:top">${label}</td>
-      <td style="padding:9px 16px;border-bottom:1px solid #1a1a1a;font-size:13px;color:#f0ede6;font-weight:500;vertical-align:top">${val}</td>
-    </tr>`).join('');
+  function arow(label, val) {
+    return `<tr>
+      <td style="padding:11px 18px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#5a5750;white-space:nowrap;vertical-align:top;width:38%">${label}</td>
+      <td style="padding:11px 18px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;color:#f0ede6;font-weight:500;vertical-align:top">${val}</td>
+    </tr>`;
+  }
 
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>New Booking — ${d.ref}</title></head>
 <body style="margin:0;padding:0;background:#000;font-family:Arial,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#000;padding:40px 16px"><tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+<div style="display:none;max-height:0;overflow:hidden">New booking ${d.ref} — ${d.name} | ${d.pickup} → ${d.dropoff} | ${fmt(d.date)} ${fmtT(d.time)}</div>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#050505;padding:40px 16px"><tr><td align="center">
+<table width="620" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;width:100%">
 
-  <tr><td align="center" style="padding:0 0 24px">
-    <div style="font-size:20px;font-weight:700;letter-spacing:5px;color:#fff">◆ SWISS <span style="color:#C8A45D">ELITE</span></div>
-    <div style="font-size:9px;letter-spacing:5px;text-transform:uppercase;color:#5a5750;margin-top:5px">NEW BOOKING NOTIFICATION</div>
+  <!-- Logo -->
+  <tr><td align="center" style="padding:0 0 28px">
+    <div style="font-size:22px;font-weight:700;letter-spacing:5px;color:#fff">◆ SWISS <span style="color:#C8A45D">ELITE</span></div>
+    <div style="font-size:9px;letter-spacing:6px;text-transform:uppercase;color:#5a5750;margin-top:6px">NEW BOOKING NOTIFICATION</div>
   </td></tr>
 
-  <tr><td style="background:#0d0d0d;border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden">
+  <!-- Card -->
+  <tr><td style="background:#0d0d0d;border:1px solid rgba(255,255,255,0.07);border-radius:18px;overflow:hidden">
     <div style="height:1px;background:linear-gradient(90deg,#0d0d0d,#C8A45D,#0d0d0d)"></div>
 
-    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:24px 28px 16px">
-      <div style="background:rgba(200,164,93,0.09);border:1px solid rgba(200,164,93,0.28);border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#5a5750;margin-bottom:5px">BOOKING REFERENCE</div>
-          <div style="font-size:22px;font-weight:700;color:#C8A45D;letter-spacing:3px">${d.ref}</div>
-        </div>
-      </div>
+    <!-- Ref + Payment badge -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:24px 28px 20px;border-bottom:1px solid rgba(255,255,255,0.05)">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="background:rgba(200,164,93,0.07);border:1px solid rgba(200,164,93,0.22);border-radius:12px;padding:16px 20px">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td>
+              <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#5a5750;margin-bottom:5px">BOOKING REFERENCE</div>
+              <div style="font-size:24px;font-weight:700;color:#C8A45D;letter-spacing:3px">${d.ref}</div>
+            </td>
+            <td align="right" valign="middle">${paymentBadge}</td>
+          </tr></table>
+        </td>
+      </tr></table>
     </td></tr></table>
 
-    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:0 28px 24px">
-      <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#C8A45D;margin-bottom:12px">BOOKING DETAILS</div>
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#111;border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden">
-        ${rows}
+    <!-- Customer contact block -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:20px 28px 16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#C8A45D;margin-bottom:14px">CUSTOMER</div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:12px">
+        <tr>
+          <td style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#5a5750;margin-bottom:4px">NAME</div>
+            <div style="font-size:15px;font-weight:700;color:#f0ede6">${d.name}</div>
+          </td>
+          <td style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.04);border-left:1px solid rgba(255,255,255,0.04)">
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#5a5750;margin-bottom:4px">PHONE</div>
+            <div style="font-size:15px;font-weight:700;color:#f0ede6"><a href="tel:${d.phone||''}" style="color:#f0ede6;text-decoration:none">${d.phone || '—'}</a></div>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding:12px 18px">
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#5a5750;margin-bottom:4px">EMAIL</div>
+            <div style="font-size:13px;font-weight:500;color:#C8A45D"><a href="mailto:${d.email}" style="color:#C8A45D;text-decoration:none">${d.email}</a></div>
+          </td>
+        </tr>
       </table>
     </td></tr></table>
 
-    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:rgba(200,164,93,0.07);border-top:1px solid rgba(200,164,93,0.2);padding:16px 28px">
-      <div style="font-size:12px;color:#9e9b93">Manage at: <a href="https://book.swisselitetransfers.com/admin/dashboard" style="color:#C8A45D;text-decoration:none">book.swisselitetransfers.com/admin/dashboard</a></div>
+    <!-- Route -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:20px 28px 16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#C8A45D;margin-bottom:14px">${isRound ? 'OUTBOUND ROUTE' : 'TRANSFER ROUTE'}</div>
+      ${routeBlock('outbound', d.pickup, d.dropoff)}
+      ${isRound ? `
+      <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#C8A45D;margin-top:18px;margin-bottom:14px">RETURN ROUTE</div>
+      ${routeBlock('return', returnPickup, returnDropoff)}
+      ` : ''}
+    </td></tr></table>
+
+    <!-- Schedule -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:20px 28px 16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#C8A45D;margin-bottom:14px">SCHEDULE</div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden">
+        ${arow('Trip Type', tripLabel)}
+        ${arow('Pickup Date', `<strong style="color:#f0ede6">${fmt(d.date)}</strong>`)}
+        ${arow('Pickup Time', `<strong style="color:#C8A45D;font-size:14px">${fmtT(d.time)}</strong>`)}
+        ${isRound && d.returnDate ? arow('Return Date', `<strong style="color:#f0ede6">${fmt(d.returnDate)}</strong>`) : ''}
+        ${isRound && d.returnTime ? arow('Return Time', `<strong style="color:#C8A45D;font-size:14px">${fmtT(d.returnTime)}</strong>`) : ''}
+      </table>
+    </td></tr></table>
+
+    <!-- Vehicle & Fare -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:20px 28px 16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#C8A45D;margin-bottom:14px">VEHICLE &amp; FARE</div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden">
+        ${arow('Vehicle', d.vehicle || '—')}
+        ${d.estimatedDistance ? arow('Est. Distance', `~${d.estimatedDistance} km`) : ''}
+        ${d.estimatedFare ? arow('Estimated Fare', `<strong style="color:#C8A45D;font-size:16px">CHF ${Number(d.estimatedFare).toLocaleString()}</strong>`) : ''}
+        ${arow('Payment', isPaid ? '<span style="color:#4ade80;font-weight:700">✓ Paid Online</span>' : '<span style="color:#C8A45D">Cash on Arrival</span>')}
+      </table>
+    </td></tr></table>
+
+    ${d.notes ? `
+    <!-- Special Requests -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:20px 28px 16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#C8A45D;margin-bottom:14px">SPECIAL REQUESTS</div>
+      <div style="background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 18px;font-size:13px;color:#9e9b93;line-height:1.7">${d.notes}</div>
+    </td></tr></table>
+    ` : ''}
+
+    <!-- Footer -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:rgba(200,164,93,0.06);border-top:1px solid rgba(200,164,93,0.18);padding:18px 28px">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="font-size:12px;color:#9e9b93">
+          <a href="https://book.swisselitetransfers.com/admin/dashboard" style="color:#C8A45D;text-decoration:none;font-weight:600">Open Admin Dashboard →</a>
+        </td>
+        <td align="right">
+          <div style="font-size:14px;font-weight:700;letter-spacing:3px;color:#fff">◆ SWISS <span style="color:#C8A45D">ELITE</span></div>
+        </td>
+      </tr></table>
     </td></tr></table>
   </td></tr>
 
