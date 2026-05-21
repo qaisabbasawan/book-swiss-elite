@@ -7,7 +7,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 const STRIPE_PK = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
-  || 'pk_test_51Sekaz24ljyfQ7fxW5qM9sNGNw5R8N2LUObN4EWwGVbMOBvuJwb2zR0ZnvYBi4TQyVuuY26VmFFaSji2srL3HOBY008QD4tpEv';
+  || 'pk_live_51Sekaz24ljyfQ7fxW5qM9sNGNw5R8N2LUObN4EWwGVbMOBvuJwb2zR0ZnvYBi4TQyVuuY26VmFFaSji2srL3HOBY008QD4tpEv';
 const stripePromise = loadStripe(STRIPE_PK);
 
 const STRIPE_APPEARANCE = {
