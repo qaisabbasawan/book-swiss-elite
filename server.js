@@ -3,9 +3,11 @@ const express    = require('express');
 const nodemailer = require('nodemailer');
 const path       = require('path');
 const https      = require('https');
+const Stripe     = require('stripe');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 app.use(express.json());
 
@@ -107,6 +109,25 @@ app.get('/api/distance', async (req, res) => {
   } catch (err) {
     console.error('[Distance/OSRM]', err.message);
     return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/* ── Stripe payment intent ────────────────────────────── */
+app.post('/api/create-payment-intent', async (req, res) => {
+  if (!stripe) return res.status(500).json({ ok: false, error: 'Stripe not configured' });
+  const { amount, currency, bookingRef } = req.body;
+  if (!amount) return res.status(400).json({ ok: false, error: 'Missing amount' });
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(Number(amount) * 100),
+      currency: (currency || 'chf').toLowerCase(),
+      automatic_payment_methods: { enabled: true },
+      metadata: { bookingRef: bookingRef || '' },
+    });
+    res.json({ ok: true, clientSecret: paymentIntent.client_secret });
+  } catch (err) {
+    console.error('[Stripe] PaymentIntent error:', err.message);
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
@@ -288,6 +309,7 @@ function buildEmail(d) {
         ${row('Pickup Time', fmtT(d.time))}
         ${returnRows}
         ${fareRows}
+        ${d.paymentMethod ? row('Payment', d.paymentMethod === 'online' ? '<span style="color:#4ade80;font-weight:700">✓ Paid Online</span>' : 'Cash on Arrival') : ''}
         ${notesBlock}
       </table>
     </td></tr></table>
@@ -355,6 +377,7 @@ function buildAdminEmail(d) {
     ...(d.estimatedDistance ? [['Est. Distance', `~${d.estimatedDistance} km`]] : []),
     ...(d.estimatedFare     ? [['Estimated Fare', `CHF ${Number(d.estimatedFare).toLocaleString()}`]] : []),
     ...(d.notes             ? [['Special Requests', d.notes]] : []),
+    ...(d.paymentMethod     ? [['Payment', d.paymentMethod === 'online' ? '✓ Paid Online' : 'Cash on Arrival']] : []),
   ];
 
   const rows = fields.map(([label, val]) => `

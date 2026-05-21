@@ -743,6 +743,131 @@ select.input {
 .os-label { font-size:0.62rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-muted); }
 .os-val   { font-size:0.85rem; color:var(--text); font-weight:500; line-height:1.4; }
 
+/* ══════════════════════════════════════════════════
+   PAYMENT STEP — STEP 4
+   ══════════════════════════════════════════════════ */
+
+.payment-fare-card {
+  text-align:center;
+  padding:1.75rem 1.5rem;
+  background:rgba(201,168,76,0.05);
+  border:1px solid rgba(201,168,76,0.22);
+  border-radius:16px;
+  margin-bottom:0.5rem;
+}
+
+.payment-fare-label {
+  font-size:0.62rem;
+  font-weight:700;
+  letter-spacing:0.22em;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  margin-bottom:0.6rem;
+}
+
+.payment-fare-amount {
+  font-size:2.6rem;
+  font-weight:700;
+  color:var(--gold);
+  letter-spacing:-0.03em;
+  line-height:1;
+  margin-bottom:0.5rem;
+}
+
+.payment-fare-meta {
+  font-size:0.78rem;
+  color:var(--text-muted);
+}
+
+/* Payment method cards */
+.payment-methods-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1rem;
+}
+
+.payment-method-btn {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:0.55rem;
+  padding:1.5rem 1.4rem;
+  background:rgba(255,255,255,0.02);
+  border:1.5px solid rgba(255,255,255,0.07);
+  border-radius:16px;
+  cursor:pointer;
+  transition:border-color var(--t), background var(--t), transform var(--t), box-shadow var(--t);
+  font-family:'Poppins',sans-serif;
+  text-align:left;
+}
+
+.payment-method-btn:hover:not(:disabled) {
+  border-color:rgba(201,168,76,0.45);
+  background:rgba(201,168,76,0.06);
+  transform:translateY(-3px);
+  box-shadow:0 14px 36px rgba(0,0,0,0.45);
+}
+
+.payment-method-btn:disabled { opacity:0.55; cursor:not-allowed; }
+
+.pm-icon {
+  color:var(--gold);
+  margin-bottom:0.2rem;
+}
+
+.pm-title {
+  font-size:1rem;
+  font-weight:700;
+  color:var(--text);
+  line-height:1.2;
+}
+
+.pm-desc {
+  font-size:0.75rem;
+  color:var(--text-muted);
+  line-height:1.55;
+}
+
+.pm-badges {
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.3rem;
+  margin-top:0.4rem;
+}
+
+.pm-badges span {
+  font-size:0.55rem;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  padding:0.18rem 0.45rem;
+  border-radius:4px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.08);
+  color:var(--text-sec);
+}
+
+/* Stripe form container */
+.stripe-form-container {
+  background:rgba(255,255,255,0.015);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px;
+  padding:1.5rem;
+}
+
+/* Payment loading */
+.payment-loading {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:1rem;
+  padding:3.5rem 0;
+  color:var(--text-muted);
+  font-size:0.83rem;
+  letter-spacing:0.04em;
+}
+
 /* ── Animations ───────────────────────────────────── */
 @keyframes spin { to { transform:rotate(360deg); } }
 
@@ -760,9 +885,11 @@ select.input {
   .order-summary-grid { grid-template-columns:1fr; }
   .progress-steps { padding:0; }
   .step-circle   { width:42px; height:42px; font-size:0.82rem; }
-  .step-lbl      { font-size:0.58rem; }
+  .step-lbl      { font-size:0.55rem; }
   .route-card    { flex-direction:column; }
   .route-divider { width:100%; height:1px; margin:0; }
   .step-footer-split { flex-direction:column-reverse; gap:0.75rem; }
   .btn-next, .btn-back { width:100%; justify-content:center; }
+  .payment-methods-grid { grid-template-columns:1fr; }
+  .payment-fare-amount  { font-size:2rem; }
 }

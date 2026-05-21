@@ -3,6 +3,29 @@ import '../styles/booking.css';
 import { DEMO_LOCATIONS, detectCountryFromText, COUNTRY_NAMES, ALLOWED_COUNTRIES, LOCATION_ICONS } from '../utils/locations';
 import { estimateRoute, calculateFare, generateRef, resolveVehicleName } from '../utils/pricing';
 import { getVehicles, getVehiclePricing, getFormSettings, saveBooking, upsertCustomer } from '../utils/db.js';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
+const STRIPE_APPEARANCE = {
+  theme: 'night',
+  variables: {
+    colorPrimary: '#C9A84C',
+    colorBackground: '#141414',
+    colorText: '#f2efe8',
+    colorDanger: '#e05353',
+    fontFamily: "'Poppins', system-ui, sans-serif",
+    borderRadius: '12px',
+  },
+  rules: {
+    '.Input': { border: '1.5px solid rgba(255,255,255,0.07)', backgroundColor: '#141414' },
+    '.Input:focus': { border: '1.5px solid #C9A84C', boxShadow: '0 0 0 4px rgba(201,168,76,0.08)' },
+    '.Label': { textTransform: 'uppercase', fontSize: '0.62rem', letterSpacing: '0.18em', fontWeight: '700' },
+    '.Tab': { border: '1.5px solid rgba(255,255,255,0.07)', backgroundColor: '#141414' },
+    '.Tab--selected': { border: '1.5px solid #C9A84C', backgroundColor: 'rgba(201,168,76,0.08)' },
+  },
+};
 
 const TODAY = (() => {
   const d = new Date();
@@ -136,6 +159,38 @@ export default function BookingForm() {
   const [formSettings, setFormSettings] = useState({});
   const [vPricingData, setVPricingData] = useState({});
 
+  /* Payment step state */
+  const [paymentMethod, setPaymentMethod]           = useState(null);
+  const [stripeClientSecret, setStripeClientSecret] = useState(null);
+  const [paymentLoading, setPaymentLoading]         = useState(false);
+  const [pendingRef, setPendingRef]                 = useState(null);
+
+  /* Handle return from Stripe redirect-based payment (iDEAL, Bancontact, etc.) */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('redirect_status') === 'succeeded') {
+      const saved = sessionStorage.getItem('se_pending_booking');
+      if (saved) {
+        try {
+          const { booking, emailPayload } = JSON.parse(saved);
+          sessionStorage.removeItem('se_pending_booking');
+          window.history.replaceState({}, '', window.location.pathname);
+          Promise.all([
+            saveBooking({ ...booking, payment: 'paid' }),
+            upsertCustomer({ id: 'C-'+Date.now(), name: booking.name, email: booking.email, phone: booking.phone, lastBooking: booking.date }),
+          ]).then(() => {
+            fetch('/api/send-email', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...emailPayload, paymentMethod: 'online' }),
+            }).catch(err => console.error('[Email]', err));
+          }).catch(err => console.error('[DB save]', err));
+          setBookingRef(booking.id);
+          setSubmitted(true);
+        } catch(e) { console.error('[Redirect handler]', e); }
+      }
+    }
+  }, []);
+
   useEffect(() => {
     Promise.all([getVehicles(), getVehiclePricing(), getFormSettings()])
       .then(([vList, vp, fs]) => {
@@ -244,21 +299,29 @@ export default function BookingForm() {
     if (target > step) {
       if (step === 1 && !validateStep1()) return;
       if (step === 2 && !validateStep2()) return;
+      if (step === 3 && !validateStep3()) return;
+    }
+    if (step === 4 && target < 4) {
+      setPaymentMethod(null);
+      setStripeClientSecret(null);
+      setPendingRef(null);
     }
     setStep(target);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  /* Step 3 form submit → move to payment step */
   function submit(e) {
     e.preventDefault();
     if (!validateStep3()) return;
-    setSubmitting(true);
+    setStep(4);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
-    const ref  = generateRef();
+  function buildPayloads(ref, paymentType) {
     const fare = computeFare(vehicle);
     const totDist = totalDistance();
     const vehicleName = resolveVehicleName(vehicle, vehicles);
-
     const retPickupName  = isRound && !sameReturnLocations ? returnPickup?.name  : (isRound ? dropoff?.name  : '');
     const retDropoffName = isRound && !sameReturnLocations ? returnDropoff?.name : (isRound ? pickup?.name   : '');
 
@@ -272,28 +335,76 @@ export default function BookingForm() {
       returnPickup: retPickupName, returnDropoff: retDropoffName,
       vehicleId: vehicle, vehicle: vehicleName,
       estimatedDistance: totDist || null, estimatedFare: fare,
-      status:'pending', payment:'unpaid', notes, source:'website',
+      status: 'pending',
+      payment: paymentType === 'online' ? 'paid' : 'unpaid',
+      notes, source: 'website',
     };
 
-    Promise.all([
-      saveBooking(booking),
-      upsertCustomer({ id:'C-'+Date.now(), name, email, phone, lastBooking: pickupDate }),
-    ]).then(() => {
-      fetch('/api/send-email', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ ref, name, email, phone, tripType,
-          pickup: pickup?.name, dropoff: dropoff?.name,
-          date: pickupDate, time: pickupTime, returnDate, returnTime,
-          sameReturnLocations,
-          returnPickup: retPickupName, returnDropoff: retDropoffName,
-          vehicle: vehicleName, estimatedDistance: totDist, estimatedFare: fare, notes }),
-      }).catch(err => console.error('[Email]', err));
-    }).catch(err => console.error('[DB save]', err));
+    const emailPayload = {
+      ref, name, email, phone, tripType,
+      pickup: pickup?.name, dropoff: dropoff?.name,
+      date: pickupDate, time: pickupTime, returnDate, returnTime,
+      sameReturnLocations,
+      returnPickup: retPickupName, returnDropoff: retDropoffName,
+      vehicle: vehicleName, estimatedDistance: totDist, estimatedFare: fare,
+      paymentMethod: paymentType, notes,
+    };
 
+    return { booking, emailPayload };
+  }
+
+  async function confirmBooking(ref, paymentType) {
+    setSubmitting(true);
+    const { booking, emailPayload } = buildPayloads(ref, paymentType);
+    try {
+      await Promise.all([
+        saveBooking(booking),
+        upsertCustomer({ id: 'C-'+Date.now(), name, email, phone, lastBooking: pickupDate }),
+      ]);
+      fetch('/api/send-email', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailPayload),
+      }).catch(err => console.error('[Email]', err));
+    } catch (err) {
+      console.error('[DB save]', err);
+    }
     setBookingRef(ref);
     setSubmitting(false);
     setSubmitted(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function handleCashPayment() {
+    const ref = generateRef();
+    await confirmBooking(ref, 'cash');
+  }
+
+  async function handleOnlinePayment() {
+    const fare = computeFare(vehicle);
+    if (!fare) return;
+    const ref = generateRef();
+    setPendingRef(ref);
+    setPaymentMethod('online');
+    setPaymentLoading(true);
+    try {
+      const res = await fetch('/api/create-payment-intent', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: fare, currency: 'chf', bookingRef: ref }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Payment init failed');
+      /* Store booking payload for redirect-based payment methods */
+      const { booking, emailPayload } = buildPayloads(ref, 'online');
+      sessionStorage.setItem('se_pending_booking', JSON.stringify({ booking, emailPayload }));
+      setStripeClientSecret(data.clientSecret);
+    } catch (err) {
+      console.error('[Payment Intent]', err);
+      setPaymentMethod(null);
+      setPendingRef(null);
+      setErrors({ payment: 'Failed to initialize payment. Please try again or select Cash on Arrival.' });
+    } finally {
+      setPaymentLoading(false);
+    }
   }
 
   const staticVehicles = [
@@ -323,7 +434,7 @@ export default function BookingForm() {
           <div className="brand-tagline">Luxury Chauffeur Transfers</div>
         </div>
 
-        {/* Progress — outside the card */}
+        {/* Progress — 4 steps */}
         <div className="progress-steps">
           <div className={stepClass(1)} onClick={() => step > 1 && goToStep(1)}>
             <div className="step-circle"><span>{step > 1 ? '✓' : '1'}</span></div>
@@ -335,9 +446,14 @@ export default function BookingForm() {
             <div className="step-lbl">{formSettings.title2 || 'Choose Vehicle'}</div>
           </div>
           <div className={`step-line ${step >= 3 ? 'done' : ''}`}/>
-          <div className={stepClass(3)}>
-            <div className="step-circle"><span>3</span></div>
+          <div className={stepClass(3)} onClick={() => step > 3 && goToStep(3)}>
+            <div className="step-circle"><span>{step > 3 ? '✓' : '3'}</span></div>
             <div className="step-lbl">{formSettings.title3 || 'Place Order'}</div>
+          </div>
+          <div className={`step-line ${step >= 4 ? 'done' : ''}`}/>
+          <div className={stepClass(4)}>
+            <div className="step-circle"><span>4</span></div>
+            <div className="step-lbl">Payment</div>
           </div>
         </div>
 
@@ -671,20 +787,177 @@ export default function BookingForm() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     Back
                   </button>
-                  <button type="submit" className="btn-next" disabled={submitting}>
-                    {submitting ? (
-                      <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" style={{animation:'spin .8s linear infinite'}}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Processing...</>
-                    ) : (
-                      <>{formSettings.btnSubmitText || 'Book Your Transfer'} →</>
-                    )}
+                  <button type="submit" className="btn-next">
+                    Continue to Payment →
                   </button>
                 </div>
               </form>
             </div>
           )}
+
+          {/* ── STEP 4 — Payment ── */}
+          {step === 4 && (
+            <div className="form-step">
+              <div className="step-header">
+                <h2 className="step-title">Complete Your Payment</h2>
+                <p className="step-desc">Select your preferred payment method</p>
+              </div>
+
+              {/* Fare summary card */}
+              <div className="payment-fare-card">
+                <div className="payment-fare-label">Total Amount Due</div>
+                <div className="payment-fare-amount">
+                  CHF {computeFare(vehicle)?.toLocaleString() ?? '—'}
+                </div>
+                <div className="payment-fare-meta">
+                  {resolveVehicleName(vehicle, vehicles)} · {isRound ? 'Round Trip' : 'One Way'}
+                  {totalDistance() ? ` · ~${totalDistance()} km` : ''}
+                </div>
+              </div>
+
+              {/* Payment method selection */}
+              {!paymentMethod && (
+                <>
+                  <div className="section-label" style={{margin:'2rem 0 1rem'}}>Select Payment Method</div>
+                  <div className="payment-methods-grid">
+                    {/* Cash on Arrival */}
+                    <button
+                      type="button"
+                      className="payment-method-btn"
+                      onClick={handleCashPayment}
+                      disabled={submitting}
+                    >
+                      <div className="pm-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="32" height="32"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M22 10H2M6 14h.01M18 14h.01"/></svg>
+                      </div>
+                      <div className="pm-title">Cash on Arrival</div>
+                      <div className="pm-desc">Pay your chauffeur directly on the day of travel. No advance payment needed.</div>
+                      {submitting && (
+                        <div style={{marginTop:'0.75rem',fontSize:'0.75rem',color:'var(--gold)'}}>
+                          <svg style={{animation:'spin .8s linear infinite',marginRight:4,verticalAlign:'middle'}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                          Confirming booking…
+                        </div>
+                      )}
+                    </button>
+
+                    {/* Pay Online */}
+                    <button
+                      type="button"
+                      className="payment-method-btn"
+                      onClick={handleOnlinePayment}
+                      disabled={submitting}
+                    >
+                      <div className="pm-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="32" height="32"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h2M10 15h4"/></svg>
+                      </div>
+                      <div className="pm-title">Pay Online</div>
+                      <div className="pm-desc">Secure payment via card, Apple Pay, Google Pay, and all major methods.</div>
+                      <div className="pm-badges">
+                        <span>VISA</span><span>MC</span><span>AMEX</span><span>Apple Pay</span><span>Google Pay</span>
+                      </div>
+                    </button>
+                  </div>
+
+                  {errors.payment && (
+                    <p className="field-error" style={{textAlign:'center',marginTop:'1rem'}}>{errors.payment}</p>
+                  )}
+
+                  <div className="step-footer">
+                    <button type="button" className="btn-back" onClick={() => goToStep(3)}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                      Back
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Loading payment form */}
+              {paymentMethod === 'online' && paymentLoading && (
+                <div className="payment-loading">
+                  <svg style={{animation:'spin .8s linear infinite'}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="28"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                  <span>Preparing secure payment…</span>
+                </div>
+              )}
+
+              {/* Stripe Payment Element */}
+              {paymentMethod === 'online' && stripeClientSecret && (
+                <div style={{marginTop:'1.5rem'}}>
+                  <div className="section-label" style={{marginBottom:'1.25rem'}}>Payment Details</div>
+                  <Elements
+                    stripe={stripePromise}
+                    options={{ clientSecret: stripeClientSecret, appearance: STRIPE_APPEARANCE }}
+                  >
+                    <StripePaymentForm
+                      fare={computeFare(vehicle)}
+                      onSuccess={() => confirmBooking(pendingRef, 'online')}
+                      onBack={() => { setPaymentMethod(null); setStripeClientSecret(null); setPendingRef(null); }}
+                    />
+                  </Elements>
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── Stripe Payment Form (must be inside <Elements>) ─────────── */
+function StripePaymentForm({ fare, onSuccess, onBack }) {
+  const stripe   = useStripe();
+  const elements = useElements();
+  const [error, setError]         = useState(null);
+  const [processing, setProcessing] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setProcessing(true);
+    setError(null);
+
+    const { error: submitErr } = await elements.submit();
+    if (submitErr) { setError(submitErr.message); setProcessing(false); return; }
+
+    const { error: confirmErr } = await stripe.confirmPayment({
+      elements,
+      confirmParams: { return_url: window.location.href.split('?')[0] },
+      redirect: 'if_required',
+    });
+
+    if (confirmErr) {
+      setError(confirmErr.message);
+      setProcessing(false);
+    } else {
+      onSuccess();
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="stripe-form-container">
+        <PaymentElement options={{ layout: 'tabs' }} />
+      </div>
+
+      {error && (
+        <p className="field-error" style={{marginTop:'1rem',textAlign:'center'}}>{error}</p>
+      )}
+
+      <div className="step-footer step-footer-split" style={{marginTop:'1.75rem'}}>
+        <button type="button" className="btn-back" onClick={onBack} disabled={processing}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back
+        </button>
+        <button type="submit" className="btn-next" disabled={!stripe || processing}>
+          {processing ? (
+            <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" style={{animation:'spin .8s linear infinite'}}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Processing…</>
+          ) : (
+            <>Pay CHF {fare?.toLocaleString()} →</>
+          )}
+        </button>
+      </div>
+    </form>
   );
 }
 
