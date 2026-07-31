@@ -310,7 +310,14 @@
   gap: 2rem;
 }
 
-.footer-brand img { height: 40px; width: auto; margin-bottom: 0.75rem; display: block; }
+.footer-brand-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+}
+.footer-brand-name span { color: var(--gold); }
 .footer-brand p { font-size: 0.78rem; color: var(--text-muted); max-width: 280px; line-height: 1.6; }
 
 .footer-col h4 {
