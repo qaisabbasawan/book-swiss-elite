@@ -438,7 +438,7 @@ export default function BookingForm() {
 
         {/* Brand */}
         <div className="brand-header">
-          <img className="brand-logo-img" src="/assets/swiss-elite-logo.webp" alt="Swiss Elite Transfers" />
+          <img className="brand-logo-img" src="/assets/swiss-elite-logo.png" alt="Swiss Elite Transfers" />
           <div className="brand-tagline">Luxury Chauffeur Transfers</div>
         </div>
 
@@ -985,7 +985,7 @@ function SuccessScreen({ ref_, thankyouCode }) {
     <div className="booking-page">
       <div className="booking-container">
         <div className="brand-header">
-          <img className="brand-logo-img" src="/assets/swiss-elite-logo.webp" alt="Swiss Elite Transfers" />
+          <img className="brand-logo-img" src="/assets/swiss-elite-logo.png" alt="Swiss Elite Transfers" />
           <div className="brand-tagline">Luxury Chauffeur Transfers</div>
         </div>
         <div className="form-card">

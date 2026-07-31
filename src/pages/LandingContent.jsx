@@ -198,7 +198,7 @@ export default function LandingContent() {
       <footer className="landing-footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <img src="/assets/swiss-elite-logo.webp" alt="Swiss Elite Transfers logo" loading="lazy" />
+            <img src="/assets/swiss-elite-logo.png" alt="Swiss Elite Transfers logo" loading="lazy" />
             <p>Premium airport transfers, private chauffeur service and ski resort transfers across Switzerland — available 24 hours a day, 365 days a year.</p>
           </div>
           <div className="footer-col">
