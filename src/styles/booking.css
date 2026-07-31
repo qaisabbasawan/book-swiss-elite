@@ -66,6 +66,13 @@ body {
 
 .brand-logo span { color:var(--gold); }
 
+.brand-logo-img {
+  height:64px;
+  width:auto;
+  display:block;
+  margin:0 auto;
+}
+
 .brand-tagline {
   font-size:0.65rem;
   letter-spacing:0.42em;

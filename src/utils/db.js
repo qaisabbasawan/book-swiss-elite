@@ -49,6 +49,11 @@ function mapSettings(r) {
   return { company: r.company, phone: r.phone, email: r.email, address: r.address, website: r.website, currency: r.currency };
 }
 
+function mapTrackingSettings(r) {
+  if (!r) return {};
+  return { landingCode: r.landing_code || '', thankyouCode: r.thankyou_code || '' };
+}
+
 /* ── Vehicles ────────────────────────────────────────────── */
 export async function getVehicles() {
   const { data, error } = await supabase.from('vehicles').select('*').order('sort_order');
@@ -203,6 +208,20 @@ export async function getSettings() {
 export async function saveSettings(s) {
   const { error } = await supabase.from('app_settings').upsert(
     { id: 1, company: s.company || '', phone: s.phone || '', email: s.email || '', address: s.address || '', website: s.website || '', currency: s.currency || 'CHF' },
+    { onConflict: 'id' }
+  );
+  if (error) throw error;
+}
+
+/* ── Tracking Codes (Google Ads / Analytics) ────────────────── */
+export async function getTrackingSettings() {
+  const { data } = await supabase.from('tracking_settings').select('*').eq('id', 1).maybeSingle();
+  return mapTrackingSettings(data);
+}
+
+export async function saveTrackingSettings(t) {
+  const { error } = await supabase.from('tracking_settings').upsert(
+    { id: 1, landing_code: t.landingCode || '', thankyou_code: t.thankyouCode || '' },
     { onConflict: 'id' }
   );
   if (error) throw error;

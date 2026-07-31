@@ -9,6 +9,7 @@ import {
   getAreas, toggleArea as sbToggleArea,
   getFormSettings, saveFormSettings as sbSaveFormSettings,
   getSettings, saveSettings as sbSaveSettings,
+  getTrackingSettings, saveTrackingSettings as sbSaveTrackingSettings,
   getAdmins, saveAdminUser as sbSaveAdmin, deleteAdmin as sbDeleteAdmin,
 } from '../utils/db.js';
 import '../styles/admin.css';
@@ -41,6 +42,7 @@ export default function AdminDashboard() {
   const [vPricing, setVPricing] = useState({});
   const [settings, setSettings] = useState({});
   const [formSettings, setFormSettings] = useState({});
+  const [trackingSettings, setTrackingSettings] = useState({});
   const [admins, setAdmins]     = useState([]);
   const [toasts, setToasts]     = useState([]);
   const [modal, setModal]       = useState(null);
@@ -60,12 +62,12 @@ export default function AdminDashboard() {
   const loadAll = useCallback(async () => {
     setLoadingData(true);
     try {
-      const [v, b, c, a, p, vp, s, fs, adm] = await Promise.all([
+      const [v, b, c, a, p, vp, s, fs, ts, adm] = await Promise.all([
         getVehicles(), getBookings(), getCustomers(), getAreas(),
-        getPricing(), getVehiclePricing(), getSettings(), getFormSettings(), getAdmins(),
+        getPricing(), getVehiclePricing(), getSettings(), getFormSettings(), getTrackingSettings(), getAdmins(),
       ]);
       setVehicles(v); setBookings(b); setCustomers(c); setAreas(a);
-      setPricing(p); setVPricing(vp); setSettings(s); setFormSettings(fs); setAdmins(adm);
+      setPricing(p); setVPricing(vp); setSettings(s); setFormSettings(fs); setTrackingSettings(ts); setAdmins(adm);
     } catch(err) {
       console.error('DB load error:', err);
       addToast('Failed to load data from database.', 'error');
@@ -179,6 +181,15 @@ export default function AdminDashboard() {
     } catch(e) { addToast('Failed to save settings.', 'error'); }
   }
 
+  /* ── TRACKING CODES ─────────────────────────────────────────── */
+  async function saveTrackingSettings(t) {
+    try {
+      await sbSaveTrackingSettings(t);
+      setTrackingSettings({ ...t });
+      addToast('Tracking codes saved. Live on the booking page now.');
+    } catch(e) { addToast('Failed to save tracking codes.', 'error'); }
+  }
+
   /* ── ADMIN USERS ────────────────────────────────────────────── */
   async function saveAdminUser(u) {
     try {
@@ -215,6 +226,7 @@ export default function AdminDashboard() {
     pricing:       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
     areas:         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
     formSettings:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>,
+    tracking:      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-3-3L7 13.6"/></svg>,
     adminUsers:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
     settings:      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
     logout:        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
@@ -235,6 +247,9 @@ export default function AdminDashboard() {
       { id:'service-areas', label:'Service Areas', icon: IC.areas },
       { id:'form-settings', label:'Form Settings', icon: IC.formSettings },
     ]},
+    { label:'MARKETING', items:[
+      { id:'tracking-codes', label:'Tracking Codes', icon: IC.tracking },
+    ]},
     { label:'SYSTEM', items:[
       { id:'admin-users',   label:'Admin Users',   icon: IC.adminUsers },
       { id:'settings',      label:'Settings',      icon: IC.settings },
@@ -253,6 +268,7 @@ export default function AdminDashboard() {
       case 'pricing':       return <PricingSection pricing={pricing} vPricing={vPricing} vehicles={vehicles} currency={currency} onSave={savePricing} onVehiclePrice={(id,p) => setModal({type:'vpricing', vehicleId:id, current:p})} />;
       case 'service-areas': return <AreasSection areas={areas} onToggle={toggleArea}/>;
       case 'form-settings': return <FormSettingsSection fs={formSettings} onSave={saveFormSettings}/>;
+      case 'tracking-codes': return <TrackingCodesSection ts={trackingSettings} onSave={saveTrackingSettings}/>;
       case 'admin-users':   return <AdminUsersSection admins={admins} onAdd={() => setModal({type:'adminuser', data:null})} onEdit={u => setModal({type:'adminuser', data:u})} onDelete={id => setModal({type:'confirm', action:()=>deleteAdmin(id), msg:'Remove this admin user?'})}/>;
       case 'settings':      return <SettingsSection settings={settings} onSave={saveSettings}/>;
       default: return null;
@@ -671,6 +687,67 @@ function FormSettingsSection({ fs, onSave }) {
               <div key={k} className="form-field"><label>{l}</label><input className="form-input" value={s[k]||''} onChange={e => f(k, e.target.value)}/></div>
             ))}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TrackingCodesSection({ ts, onSave }) {
+  const [s, setS] = useState(ts);
+  const [dirty, setDirty] = useState(false);
+  useEffect(() => { setS(ts); setDirty(false); }, [ts]);
+  const f = (k, v) => { setS(prev => ({...prev, [k]: v})); setDirty(true); };
+
+  function save() {
+    onSave(s);
+    setDirty(false);
+  }
+
+  return (
+    <div className="page active">
+      <div className="page-head">
+        <h1 className="page-title">Tracking Codes</h1>
+        <button className="btn-primary" onClick={save} disabled={!dirty}>Save & Go Live</button>
+      </div>
+
+      <div className="info-banner" style={{marginBottom:'1.5rem'}}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Only paste code copied directly from Google Ads, Google Analytics, or Google Tag Manager. Whatever
+        you paste here runs on every visitor's browser on the live booking page — never paste code from
+        an untrusted source.
+      </div>
+
+      <div className="two-col">
+        <div className="panel">
+          <h3 className="panel-section-title">Landing Page Code</h3>
+          <p style={{fontSize:'.8rem',color:'var(--text-muted)',marginBottom:'1rem',lineHeight:1.6}}>
+            Runs on every page load. This is your GA4 / Google Ads "global site tag" — paste the full
+            &lt;script&gt; snippet Google gives you when you set up a new tag or campaign.
+          </p>
+          <textarea
+            className="form-input"
+            rows={10}
+            style={{fontFamily:'monospace', fontSize:'.78rem', lineHeight:1.6}}
+            placeholder={'<!-- Paste your Google tag here, e.g. -->\n<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>\n<script>\n  window.dataLayer = window.dataLayer || [];\n  function gtag(){dataLayer.push(arguments);}\n  gtag(\'js\', new Date());\n  gtag(\'config\', \'G-XXXXXXX\');\n</script>'}
+            value={s.landingCode || ''}
+            onChange={e => f('landingCode', e.target.value)}
+          />
+        </div>
+        <div className="panel">
+          <h3 className="panel-section-title">Thank-You Page Code</h3>
+          <p style={{fontSize:'.8rem',color:'var(--text-muted)',marginBottom:'1rem',lineHeight:1.6}}>
+            Runs once, only when a booking is successfully confirmed. This is your Google Ads conversion
+            "event snippet" — paste it here to count booking completions as conversions.
+          </p>
+          <textarea
+            className="form-input"
+            rows={10}
+            style={{fontFamily:'monospace', fontSize:'.78rem', lineHeight:1.6}}
+            placeholder={'<!-- Paste your Google Ads conversion event snippet here, e.g. -->\n<script>\n  gtag(\'event\', \'conversion\', {\n    \'send_to\': \'AW-XXXXXXX/XXXXXXXXXXXX\'\n  });\n</script>'}
+            value={s.thankyouCode || ''}
+            onChange={e => f('thankyouCode', e.target.value)}
+          />
         </div>
       </div>
     </div>

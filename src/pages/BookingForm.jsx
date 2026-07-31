@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import '../styles/booking.css';
+import LandingContent from './LandingContent';
 import { DEMO_LOCATIONS, detectCountryFromText, COUNTRY_NAMES, ALLOWED_COUNTRIES, LOCATION_ICONS } from '../utils/locations';
 import { estimateRoute, calculateFare, generateRef, resolveVehicleName } from '../utils/pricing';
-import { getVehicles, getVehiclePricing, getFormSettings, saveBooking, upsertCustomer } from '../utils/db.js';
+import { getVehicles, getVehiclePricing, getFormSettings, getTrackingSettings, saveBooking, upsertCustomer } from '../utils/db.js';
+import { injectTrackingCode } from '../utils/injectTracking.js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
@@ -160,6 +162,7 @@ export default function BookingForm() {
   const [bookingRef, setBookingRef] = useState('');
   const [formSettings, setFormSettings] = useState({});
   const [vPricingData, setVPricingData] = useState({});
+  const [thankyouCode, setThankyouCode] = useState('');
 
   /* Payment step state */
   const [paymentMethod, setPaymentMethod]           = useState(null);
@@ -194,11 +197,13 @@ export default function BookingForm() {
   }, []);
 
   useEffect(() => {
-    Promise.all([getVehicles(), getVehiclePricing(), getFormSettings()])
-      .then(([vList, vp, fs]) => {
+    Promise.all([getVehicles(), getVehiclePricing(), getFormSettings(), getTrackingSettings()])
+      .then(([vList, vp, fs, ts]) => {
         setVehicles(vList.filter(v => v.enabled !== false));
         setVPricingData(vp);
         setFormSettings(fs);
+        injectTrackingCode(ts.landingCode, 'landing');
+        setThankyouCode(ts.thankyouCode || '');
       })
       .catch(err => console.error('[BookingForm] load error:', err));
   }, []);
@@ -424,15 +429,16 @@ export default function BookingForm() {
     return 'step-item';
   }
 
-  if (submitted) return <SuccessScreen ref_={bookingRef} />;
+  if (submitted) return <SuccessScreen ref_={bookingRef} thankyouCode={thankyouCode} />;
 
   return (
-    <div className="booking-page">
+    <>
+    <div className="booking-page" id="book-form">
       <div className="booking-container">
 
         {/* Brand */}
         <div className="brand-header">
-          <div className="brand-logo">◆ SWISS <span>ELITE</span></div>
+          <img className="brand-logo-img" src="/assets/swiss-elite-logo.webp" alt="Swiss Elite Transfers" />
           <div className="brand-tagline">Luxury Chauffeur Transfers</div>
         </div>
 
@@ -903,6 +909,8 @@ export default function BookingForm() {
         </div>
       </div>
     </div>
+    <LandingContent />
+    </>
   );
 }
 
@@ -964,12 +972,20 @@ function StripePaymentForm({ fare, onSuccess, onBack }) {
 }
 
 /* ── Success Screen ───────────────────────────────────────────── */
-function SuccessScreen({ ref_ }) {
+function SuccessScreen({ ref_, thankyouCode }) {
+  useEffect(() => {
+    if (!thankyouCode || !ref_) return;
+    const firedKey = `se_conversion_fired_${ref_}`;
+    if (sessionStorage.getItem(firedKey)) return;
+    injectTrackingCode(thankyouCode, 'thankyou');
+    sessionStorage.setItem(firedKey, '1');
+  }, [thankyouCode, ref_]);
+
   return (
     <div className="booking-page">
       <div className="booking-container">
         <div className="brand-header">
-          <div className="brand-logo">◆ SWISS <span>ELITE</span></div>
+          <img className="brand-logo-img" src="/assets/swiss-elite-logo.webp" alt="Swiss Elite Transfers" />
           <div className="brand-tagline">Luxury Chauffeur Transfers</div>
         </div>
         <div className="form-card">

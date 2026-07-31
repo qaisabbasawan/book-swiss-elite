@@ -1,0 +1,377 @@
+/* ====================================================
+   SWISS ELITE — Landing / SEO Content (below booking form)
+   Reuses color & font tokens defined in booking.css :root
+   ==================================================== */
+
+.landing {
+  width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: 4rem;
+}
+
+.landing-section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 0;
+}
+
+.landing-section.narrow { max-width: 900px; }
+
+.landing-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.landing-h2 {
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 0.9rem;
+}
+
+.landing-lead {
+  font-size: 0.95rem;
+  color: var(--text-sec);
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 2.75rem;
+  line-height: 1.75;
+}
+
+/* ── Trust strip (right under form) ─────────────────── */
+.trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 2.5rem 1.5rem 0;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.trust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-sec);
+}
+
+.trust-chip svg { color: var(--gold); flex-shrink: 0; }
+
+/* ── Service / value cards ───────────────────────────── */
+.landing-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.landing-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.landing-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem 1.75rem;
+  transition: var(--t);
+}
+
+.landing-card:hover {
+  border-color: var(--gold-border);
+  transform: translateY(-3px);
+}
+
+.landing-card-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.1rem;
+}
+
+.landing-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.55rem;
+  letter-spacing: -0.01em;
+}
+
+.landing-card p {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+
+.landing-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.landing-card-link:hover { color: var(--gold-light); }
+
+/* ── Fleet cards ──────────────────────────────────────── */
+.fleet-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: var(--t);
+}
+
+.fleet-card:hover { border-color: var(--gold-border); transform: translateY(-3px); }
+
+.fleet-img-wrap { width: 100%; aspect-ratio: 16/10; overflow: hidden; background: #080808; }
+.fleet-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
+
+.fleet-info { padding: 1.35rem 1.5rem 1.6rem; }
+.fleet-info h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.3rem; }
+.fleet-info p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+
+/* ── Why choose us ────────────────────────────────────── */
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.1rem;
+}
+
+.why-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.6rem 1.5rem;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.why-item-icon { color: var(--gold); }
+
+.why-item h3 { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+.why-item p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.65; }
+
+/* ── Coverage / routes ────────────────────────────────── */
+.coverage-text {
+  font-size: 0.9rem;
+  color: var(--text-sec);
+  line-height: 1.85;
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto 2.25rem;
+}
+
+.city-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-bottom: 2.75rem;
+}
+
+.city-chip {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  color: var(--text-sec);
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.route-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.route-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 0.82rem;
+  color: var(--text-sec);
+}
+
+.route-list-item svg { color: var(--gold); flex-shrink: 0; }
+
+/* ── FAQ ───────────────────────────────────────────────── */
+.faq-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.faq-caret { color: var(--gold); transition: transform 0.25s ease; flex-shrink: 0; }
+.faq-item.open .faq-caret { transform: rotate(180deg); }
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.faq-item.open .faq-answer { max-height: 240px; }
+
+.faq-answer p {
+  padding: 0 1.4rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* ── Final CTA banner ─────────────────────────────────── */
+.final-cta {
+  margin: 5rem auto 0;
+  max-width: 1080px;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, rgba(201,168,76,0.10), rgba(201,168,76,0.03));
+  border: 1px solid var(--gold-border);
+  border-radius: 24px;
+  text-align: center;
+}
+
+.final-cta h2 { margin-bottom: 0.6rem; }
+.final-cta p { color: var(--text-sec); font-size: 0.9rem; margin-bottom: 1.75rem; }
+
+/* ── Footer ───────────────────────────────────────────── */
+.landing-footer {
+  margin-top: 4.5rem;
+  border-top: 1px solid var(--border);
+  padding: 2.75rem 1.5rem 1.5rem;
+}
+
+.footer-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.footer-brand img { height: 40px; width: auto; margin-bottom: 0.75rem; display: block; }
+.footer-brand p { font-size: 0.78rem; color: var(--text-muted); max-width: 280px; line-height: 1.6; }
+
+.footer-col h4 {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.9rem;
+}
+
+.footer-col a {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-sec);
+  text-decoration: none;
+  margin-bottom: 0.6rem;
+  transition: color var(--t);
+}
+
+.footer-col a:hover { color: var(--gold); }
+
+.footer-bottom {
+  max-width: 1080px;
+  margin: 2.5rem auto 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* ── Sticky mobile CTA ────────────────────────────────── */
+.mobile-sticky-cta {
+  display: none;
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 900px) {
+  .landing-grid-3, .why-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 680px) {
+  .landing-section { padding: 3rem 1.1rem 0; }
+  .landing-grid-3, .landing-grid-2, .why-grid { grid-template-columns: 1fr; }
+  .route-list { grid-template-columns: 1fr; }
+  .final-cta { margin-top: 3.5rem; padding: 2.25rem 1.4rem; border-radius: 18px; }
+  .footer-inner { flex-direction: column; }
+
+  .mobile-sticky-cta {
+    display: block;
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 400;
+    padding: 0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom));
+    background: rgba(5,5,5,0.92);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--gold-border);
+  }
+
+  .mobile-sticky-cta .btn-next { width: 100%; justify-content: center; }
+}
