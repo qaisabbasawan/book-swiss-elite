@@ -111,6 +111,8 @@ export default function LandingContent() {
         </div>
       </section>
 
+      <div className="landing-sticky-zone">
+
       {/* Fleet */}
       <section className="landing-section" id="fleet">
         <div className="landing-eyebrow">Our Luxury Fleet</div>
@@ -219,6 +221,8 @@ export default function LandingContent() {
       {/* Mobile sticky CTA */}
       <div className="mobile-sticky-cta">
         <button className="btn-next" onClick={scrollToForm}>Book Now →</button>
+      </div>
+
       </div>
     </div>
   );
