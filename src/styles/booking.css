@@ -893,3 +893,27 @@ select.input {
   .payment-methods-grid { grid-template-columns:1fr; }
   .payment-fare-amount  { font-size:2rem; }
 }
+
+/* ── Floating WhatsApp Button ─────────────────────────── */
+.whatsapp-float {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #25D366;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  transition: transform var(--t);
+}
+.whatsapp-float:hover { transform: scale(1.06); }
+.whatsapp-float svg { width: 32px; height: 32px; fill: #fff; }
+
+@media (max-width: 680px) {
+  .whatsapp-float { bottom: 90px; right: 16px; width: 54px; height: 54px; }
+  .whatsapp-float svg { width: 28px; height: 28px; }
+}
