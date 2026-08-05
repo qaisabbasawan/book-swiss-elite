@@ -201,21 +201,33 @@ export default function LandingContent() {
         <div className="footer-inner">
           <div className="footer-brand">
             <div className="footer-brand-name">SWISS <span>ELITE</span></div>
-            <p>Premium airport transfers, private chauffeur service and ski resort transfers across Switzerland — available 24 hours a day, 365 days a year.</p>
+            <p>Swiss Elite Transfers delivers premium chauffeur services, luxury airport transfers, executive business travel, and private ski resort transfers across Switzerland.</p>
+            <div className="footer-social">
+              <a href="https://www.facebook.com/swisselitetransfers" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <svg viewBox="0 0 320 512" fill="currentColor" width="16"><path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg>
+              </a>
+              <a href="https://www.instagram.com/swisselitetransfers" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <svg viewBox="0 0 448 512" fill="currentColor" width="16"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+              </a>
+            </div>
           </div>
           <div className="footer-col">
             <h4>Services</h4>
-            <a href="#services" onClick={e => { e.preventDefault(); scrollToForm(); }}>Airport Transfers</a>
-            <a href="#services" onClick={e => { e.preventDefault(); scrollToForm(); }}>Ski Resort Transfers</a>
-            <a href="#services" onClick={e => { e.preventDefault(); scrollToForm(); }}>Executive Travel</a>
+            <a href="https://swisselitetransfers.com/airport-transfers/">Airport Transfer</a>
+            <a href="https://swisselitetransfers.com/ski-resort-transfers/">Ski Resort Transfers</a>
+            <a href="https://swisselitetransfers.com/business-transfer-service-switzerland/">Business Transfer Service — Switzerland</a>
           </div>
           <div className="footer-col">
-            <h4>Contact</h4>
-            <a href="https://wa.me/41783228820" target="_blank" rel="noopener noreferrer">WhatsApp +41 78 322 8820</a>
-            <a href="https://www.instagram.com/swisselitetransfers" target="_blank" rel="noopener noreferrer">Instagram</a>
+            <h4>Quick Links</h4>
+            <a href="https://swisselitetransfers.com/">Home</a>
+            <a href="https://swisselitetransfers.com/about-us/">About</a>
+            <a href="https://swisselitetransfers.com/our-fleets/">Our Fleets</a>
+            <a href="https://swisselitetransfers.com/contact/">Contact</a>
+            <a href="https://swisselitetransfers.com/privacy-policy/" className="footer-col-gap">Privacy Policy</a>
+            <a href="https://swisselitetransfers.com/terms-conditions/">Terms &amp; Conditions</a>
           </div>
         </div>
-        <div className="footer-bottom">© {new Date().getFullYear()} Swiss Elite Transfers. All Rights Reserved.</div>
+        <div className="footer-bottom">© {new Date().getFullYear()} All Rights Reserved | Developed by <a href="http://www.abbasonline.com" target="_blank" rel="noopener noreferrer">Abbas Digital Agency</a></div>
       </footer>
 
       {/* Mobile sticky CTA */}

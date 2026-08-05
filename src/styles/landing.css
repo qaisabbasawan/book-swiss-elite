@@ -7,7 +7,6 @@
   width: 100%;
   background: var(--bg);
   color: var(--text);
-  padding-bottom: 4rem;
 }
 
 .landing-section {
@@ -298,7 +297,7 @@
 .landing-footer {
   margin-top: 4.5rem;
   border-top: 1px solid var(--border);
-  padding: 2.75rem 1.5rem 1.5rem;
+  padding: 2.75rem 1.5rem 0;
 }
 
 .footer-inner {
@@ -318,37 +317,52 @@
   margin-bottom: 0.75rem;
 }
 .footer-brand-name span { color: var(--gold); }
-.footer-brand p { font-size: 0.78rem; color: var(--text-muted); max-width: 280px; line-height: 1.6; }
+.footer-brand p { font-size: 0.85rem; color: var(--text); max-width: 320px; line-height: 1.6; margin-bottom: 1.25rem; }
+
+.footer-social { display: flex; gap: 0.9rem; }
+.footer-social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: color var(--t), border-color var(--t);
+}
+.footer-social a:hover { color: var(--gold); border-color: var(--gold-border); }
 
 .footer-col h4 {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1.1rem;
 }
 
 .footer-col a {
   display: block;
-  font-size: 0.82rem;
-  color: var(--text-sec);
+  font-size: 0.88rem;
+  color: var(--text);
   text-decoration: none;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.7rem;
   transition: color var(--t);
 }
+
+.footer-col a.footer-col-gap { margin-top: 0.8rem; }
 
 .footer-col a:hover { color: var(--gold); }
 
 .footer-bottom {
-  max-width: 1080px;
-  margin: 2.5rem auto 0;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
+  margin: 2.75rem -1.5rem 0;
+  padding: 1rem 1.5rem;
+  background: var(--gold);
   text-align: center;
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  font-size: 0.85rem;
+  color: #fff;
 }
+
+.footer-bottom a { color: #fff; text-decoration: underline; }
 
 /* ── Sticky mobile CTA ────────────────────────────────── */
 .mobile-sticky-cta {
